@@ -9,8 +9,10 @@ class HomeView(TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(**kwargs)
-        projects = Project.objects.all().order_by('pk')
-        context['projects'] = projects
+        proj = Project.objects.all().order_by('-title')
+        context['projectos'] = proj
+
+        context['people'] = ['Nic', 'Brendon', 'Bailey']
         return context
 
 

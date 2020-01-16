@@ -16,17 +16,22 @@
 
 
     <div class="ui segment">
-      {% for project in projects %}
+      {% for p in projectos %}
       <div class="ui three column grid">
         <div class="four wide column">
         </div>
         <div class="eight wide column">
-          <h3 class="ui header">{{ project.title }}</h3>
-          <p class="ui description">{{ project.description }}</p>
+          <h3 class="ui header">
+            {{ p.pk }} {{ p.title }}</h3>
+          <p class="ui description">{{ p.description }}</p>
         </div>
         <div class="four wide column">
         </div>
       </div>
+      {% endfor %}
+
+      {% for asdf in people %}
+      <h1>{{ asdf }}</h1>
       {% endfor %}
 
     </div>
