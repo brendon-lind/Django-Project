@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <title>Home Page</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+
   </head>
   <body>
     <h1>Home</h1>
@@ -12,8 +14,6 @@
       This is the first template that we have. Maybe try going to our
       <a href="/about" style="text-decoration: none; font-size: 2em; color: rgb(200, 200, 200);">about page.</a>
     </div>
-
-
 
     <div class="ui segment">
       {% for p in projectos %}
@@ -24,19 +24,120 @@
           <h3 class="ui header">
             {{ p.pk }} {{ p.title }}</h3>
           <p class="ui description">{{ p.description }}</p>
+
+          <div class="ui comments" id="comments-{{ p.pk }}">
+            <h3 class="ui dividing header">Comments</h3>
+            {% for comment in p.comments.all %}
+              <div class="comment">
+                  <div class="content">
+                    <a class="author">{{ comment.author }}</a>
+                    <div class="metadata">
+                      <span class="date"> {{ comment.created }}</span>
+                    </div>
+                    <div class="text">
+                      {{ comment.content }}
+                    </div>
+                  </div>
+                </div>
+            {% endfor %}
+
+          </div>
+            <form class="ui reply form" id="comment-form-{{ p.pk }}">
+              <div class="field">
+                <label>Name</label>
+                <input type="text" name="name" placeholder="Name" id="author-{{ p.pk }}">
+              </div>
+              <div class="field">
+                <textarea name="content" id="content-{{ p.pk }}"></textarea>
+              </div>
+              <div class="ui blue labeled submit icon button comment-post-button" id="comment-{{ p.pk }}">
+                <i class="icon edit"></i> Add Reply to {{p.title}}
+              </div>
+            </form>
+
         </div>
         <div class="four wide column">
         </div>
       </div>
       {% endfor %}
 
-      {% for asdf in people %}
-      <h1>{{ asdf }}</h1>
-      {% endfor %}
 
     </div>
 
 
-
   </body>
+
+  <script type="text/javascript">
+    //$('.ui.form').form()
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var csrftoken = getCookie('csrftoken');
+    var comment_html = `
+      <div class="comment">
+          <div class="content">
+            <a class="author"> comment_author </a>
+            <div class="metadata">
+              <span class="date">  comment_created </span>
+            </div>
+            <div class="text">
+               comment_content
+            </div>
+          </div>
+        </div>
+        `
+
+      let create_comment_url = "/api/v1/comments"
+      $('.comment-post-button').click ((e) => {
+        e.preventDefault()
+        let id = e.target.getAttribute("id")
+        let project_pk = parseInt(id.split('-')[1])
+        let form_id = "comment-form-" + project_pk
+        console.log(id)
+        console.log(project_pk)
+        let form_data = {
+          author: $('#author-' + project_pk).val(),
+          content: $('#content-' + project_pk).val(),
+          project: project_pk,
+
+        }
+        console.info("f", form_data)
+          $.ajax({
+            type: 'POST',
+            url: create_comment_url,
+            contentType: "Application/JSON",
+            headers: {
+                "X-CSRFToken": csrftoken,
+              },
+            data: JSON.stringify(form_data),
+          })
+          .done((d) => {
+            new_comment_html = comment_html.replace('comment_author', d.author).replace('comment_content', d.content).replace('comment_created', d.created)
+            console.log(d)
+            $('#comments-' + project_pk).append(new_comment_html)
+          })
+          .fail((d) => console.log(d))
+      })
+  </script>
+
+  <style>
+    .column > .comments {
+      padding: 2em 1em 2em 2em;
+      border-radius: 0.3em;
+      border: 2px #999 solid;
+    }
+  </style>
 </html>
